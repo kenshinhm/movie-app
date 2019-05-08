@@ -3,46 +3,46 @@ import './MovieList.css';
 import Movie from "../component/Movie";
 
 class MovieList extends React.Component {
+    // Render: componentWillMount() -> render() -> componentDidMount()
+    // Update componentWillReceiveProps() -> shouldComponentUpdate() -> componentWillUpdate() -> render() -> componentDidUpdate()
 
     state = {};
 
     componentDidMount() {
-        this._getMovieList();
+        this._getMovies();
     }
 
-    _renderMovies(movies) {
-        console.log(movies);
+    _renderMovies = () => {
+        const movies = this.state.movies.map(movie => {
+            return (
+                <Movie
+                    title={movie.title_english}
+                    poster={movie.large_cover_image}
+                    key={movie.id}
+                    genres={movie.genres}
+                    synopsis={movie.synopsis}
+                />
+            );
+        });
+        return movies;
+    };
 
-        return (
-            movies.map(movie => {
-                return <Movie key={movie.id}
-                              title={movie.title_english}
-                              poster={movie.medium_cover_image}
-                              genres={movie.genres}
-                              synopsis={movie.synopsis}/>
-            })
-        );
-    }
+    // async _getMovieList() {
+    //     const movies = await this._fetchMovieList();
+    //     this.setState({
+    //         movies
+    //     })
+    // }
 
-    render() {
-        const {movies} = this.state;
-
-        return (
-            <div className={movies ? "MovieList" : "MovieList--loading"}>
-                {movies ? this._renderMovies(movies) : <div>Loading</div>}
-            </div>
-        );
-    }
-
-    async _getMovieList() {
-        const movies = await this._fetchMovieList();
+    _getMovies = async () => {
+        const movies = await this._callApi();
         this.setState({
             movies
-        })
-    }
+        });
+    };
 
-    _fetchMovieList() {
-        return fetch('https://yts.am/api/v2/list_movies.json?sort_by=rating')
+    _callApi() {
+        return fetch('https://yts.am/api/v2/list_movies.json?sort_by=download_count')
             .then(response => {
                 if (response.ok) {
                     return response.json();
@@ -52,6 +52,16 @@ class MovieList extends React.Component {
             })
             .then(json => json.data.movies)
             .catch(err => console.log(err))
+    }
+
+    render() {
+        const {movies} = this.state;
+
+        return (
+            <div className={movies ? "MovieList" : "MovieList--loading"}>
+                {movies ? this._renderMovies(movies) : "Loading"}
+            </div>
+        );
     }
 }
 
